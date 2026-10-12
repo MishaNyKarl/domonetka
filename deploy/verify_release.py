@@ -9,7 +9,8 @@ def main():
     sha = sys.argv[1]
     for path in ('/health', '/version.txt', '/favicon.svg', '/favicon.ico', '/', '/admin'):
         request = urllib.request.Request(BASE + path + '?release=' + sha,
-                                         headers={'Cache-Control': 'no-cache'})
+                                         headers={'Cache-Control': 'no-cache',
+                                                  'User-Agent': 'Domonetka-CI/1.0 (+https://github.com/MishaNyKarl/domonetka)'})
         with urllib.request.urlopen(request, timeout=20) as response:
             assert response.status == 200, path
             body = response.read()
