@@ -1,0 +1,11 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Домонетка · прототип статистики</title><link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any"><link rel="stylesheet" href="report-table.css"><style>body{background:#f7f8f5;margin:0;padding:32px;font-family:system-ui}main{max-width:1280px;margin:auto}.preview-note{font-size:13px;color:#667060;margin-bottom:24px}@media(max-width:600px){body{padding:16px}}</style><main><p class="preview-note">Прототип · демонстрационные данные. Это не статистика рабочего сайта.</p><div id="report"></div></main><script src="report-table.js"></script><script>
+const report=DomonetkaReport.create({root:document.getElementById('report'),userId:'preview-only',localPreferences:true,onSync:async()=>({job_id:'demo',status:'running'}),onPeriodChange:async()=>{}});
+report.ready.then(()=>report.setData({rows:[
+{scope:'variant',id:'v1',stream:'Основной поток',banner:'Английский за 30 дней',variant:'Вариант 1',title:'Начните говорить сегодня',description:'Занятия с преподавателем',active:true,campaign_id:'908',impressions:1200,local_clicks:48,local_ctr:4,clicks:46,leads:4,revenue:120,profit:80,cost:40,cr:8.7,roi:200},
+{scope:'variant',id:'v2',stream:'Основной поток',banner:'Английский за 30 дней',variant:'Вариант 2',title:'Первый урок бесплатно',active:true,impressions:960,local_clicks:31,local_ctr:3.23,clicks:30,leads:0,revenue:0,profit:-12,cost:12,cr:0,roi:-100},
+{scope:'variant',id:'v3',stream:'Основной поток',banner:'Программа тренировок',variant:'Вариант 1',active:false,impressions:430,local_clicks:9,local_ctr:2.09},
+{scope:'variant',id:'v4',stream:'Основной поток',banner:'Программа тренировок',variant:'Архивный вариант',active:false,impressions:180,local_clicks:0,local_ctr:0,leads:{state:'error',error:'Не удалось импортировать кампанию'},revenue:{state:'error'},profit:{state:'error'}}
+],summary:[{label:'Показы витрины',value:'2 770'},{label:'Уникальные клики',value:'88'},{label:'CTR витрины',value:'3,18%'},{label:'Лиды Binom',value:null,help:'Есть строки без подтверждённых данных'}],sync:{label:'Часть данных недоступна',lastSuccess:'2026-10-08T09:40:00Z',error:'Демонстрация: ошибка импорта одной кампании.'}}));
+</script></html>
+
+

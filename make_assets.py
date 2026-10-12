@@ -1,0 +1,11 @@
+from pathlib import Path
+p=Path(__file__).parent/'public/assets';p.mkdir(exist_ok=True)
+cards={
+'travel':('#d9e8ed','#487e85','<path d="M0 210 150 90 250 170 360 60 600 210V375H0Z" fill="ACCENT" opacity=".65"/><path d="M0 270 200 190 340 230 600 130V375H0Z" fill="ACCENT"/><circle cx="450" cy="80" r="36" fill="#fff" opacity=".7"/>'),
+'home':('#efe5d7','#b9956c','<rect x="145" y="190" width="310" height="95" rx="26" fill="ACCENT"/><rect x="165" y="140" width="270" height="90" rx="26" fill="ACCENT"/><path d="M170 285v30m260-30v30" stroke="#826b51" stroke-width="12"/><rect x="199" y="158" width="65" height="58" rx="12" fill="#f2dbc0"/><path d="M485 270V110m-36 0h72l-12-40h-49z" stroke="ACCENT" stroke-width="8" fill="#fff"/>'),
+'learn':('#e5e7f2','#8585b1','<g transform="rotate(-12 300 190)"><rect x="172" y="82" width="240" height="225" rx="12" fill="ACCENT"/><rect x="192" y="82" width="12" height="225" fill="#fff" opacity=".4"/><path d="M237 151h125m-125 30h92" stroke="#fff" stroke-width="8" opacity=".8"/></g><circle cx="430" cy="260" r="36" fill="#c6b69c"/>'),
+'tech':('#e2e8df','#728771','<rect x="125" y="85" width="340" height="215" rx="16" fill="ACCENT"/><rect x="139" y="100" width="312" height="180" rx="5" fill="#d2ddc9"/><path d="M90 300h410l-22 18H112Z" fill="#50684f"/><circle cx="295" cy="185" r="45" fill="#acbba3"/><path d="m281 164 32 21-32 21z" fill="#fff"/>'),
+'style':('#f0dede','#b7837e','<path d="M190 145h220l28 163H162Z" fill="ACCENT"/><path d="M244 153V112a56 56 0 0 1 112 0v41" fill="none" stroke="#916260" stroke-width="13"/><circle cx="300" cy="231" r="25" fill="#efd8c1"/>'),
+'relax':('#ece8d9','#929378','<ellipse cx="300" cy="285" rx="145" ry="20" fill="ACCENT" opacity=".2"/><path d="M219 140h155v77a77 77 0 0 1-155 0z" fill="ACCENT"/><path d="M374 155c82-10 82 84 0 72" fill="none" stroke="ACCENT" stroke-width="18"/><ellipse cx="296" cy="140" rx="77" ry="15" fill="#657252"/><path d="M269 105q-20-25 0-48m47 48q-20-25 0-48" stroke="#fff" stroke-width="8" fill="none" opacity=".6"/>')}
+for name,(bg,color,shape) in cards.items():
+    (p/(name+'.svg')).write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="375" viewBox="0 0 600 375"><rect width="600" height="375" fill="{bg}"/>'+shape.replace('ACCENT',color)+'</svg>',encoding='utf-8')

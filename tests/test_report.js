@@ -1,0 +1,11 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const context={window:{},Intl,URL,Map,Set,console};vm.runInNewContext(fs.readFileSync('public/report-table.js','utf8'),context);
+const R=context.window.DomonetkaReport;
+const local={offers:[{id:'o',name:'Banner',active:1,affiliate_id:'a'}],variants:[{id:'v',offer_id:'o',title:'Title',active:1,impressions:90,clicks:40}],streams:[],period:{from:'2026-10-01',to:'2026-10-02'},variantDaily:[{offer_id:'o',variant_id:'v',day:'2026-10-01',impressions:2,clicks:1},{offer_id:'o',variant_id:'v',day:'2026-10-02',impressions:3,clicks:0}]};
+const payload={rows:[{offer_id:'o',variant_id:'v',scope:'variant',day:'period',metrics:{leads:2,cr:99}}],daily:[{offer_id:'o',variant_id:'v',scope:'variant',day:'2026-10-01',metrics:{leads:1,cr:77}},{offer_id:'o',variant_id:'v',scope:'variant',day:'2026-10-02',metrics:{leads:1,cr:33}}],period:local.period,bindings:[],columns:[]};
+const data=R.adaptBinom(payload,local),day=data.daily.filter(r=>r.scope==='variant');
+assert.deepEqual(day.map(r=>r.impressions),[2,3]);assert.deepEqual(day.map(r=>r.local_clicks),[1,0]);assert.deepEqual(day.map(r=>r.cr),[77,33]);assert.equal(data.rows[0].impressions,90);assert.equal(data.daily.filter(r=>r.scope==='attributed').length,2);
+const view={scope:'variant',filters:{offer_id:'',affiliate_id:'',active:'',import_status:''},conditions:[{id:'leads',op:'gt',value:0}]};
+assert.equal(R.filterRows(data.daily,view,'Title',R.columns).length,2);view.filters.active='0';assert.equal(R.filterRows(data.daily,view,'',R.columns).length,0);view.filters.active='1';assert.equal(R.filterRows(data.daily,view,'',R.columns).length,2);view.filters.affiliate_id='__none__';assert.equal(R.filterRows(data.daily,view,'',R.columns).length,0);
+view.filters.affiliate_id='';view.conditions=[{id:'cost',op:'gte',value:0}];assert.equal(R.filterRows(data.daily,view,'',R.columns).length,0);
+console.log('Daily attribution, period separation, raw Binom ratios, filters and missing values: OK');

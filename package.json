@@ -1,0 +1,10 @@
+{
+  "name": "domonetka",
+  "private": true,
+  "scripts": {
+    "test": "node tests/test_report.js && node tests/report-table-ui.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

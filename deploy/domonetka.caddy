@@ -1,0 +1,17 @@
+http://dop.afriro.online {
+    redir https://dop.afriro.online{uri} 308
+}
+
+dop.afriro.online {
+    tls {
+        issuer acme {
+            disable_tlsalpn_challenge
+        }
+    }
+    request_body {
+        max_size 8MB
+    }
+    reverse_proxy 127.0.0.1:8097 {
+        header_up X-Real-IP {http.request.remote.host}
+    }
+}

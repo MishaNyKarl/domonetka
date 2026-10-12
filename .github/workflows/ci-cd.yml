@@ -1,0 +1,85 @@
+name: CI / CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Checkout production SSO SDK
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: MishaNyKarl/opsvault-sso
+          ref: 08d057fd214d58d4210032916025566f5e1550c1 # SDK 0.1.2
+          ssh-key: ${{ secrets.SSO_READ_KEY }}
+          path: _sso_sdk
+          persist-credentials: false
+      - name: Install production SSO SDK
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          python -m pip install ./_sso_sdk
+          python -c 'from opsvault_sso.client import OIDCClient; from cryptography.fernet import Fernet'
+      - name: Python checks
+        run: |
+          python -m compileall -q server.py binom.py binom_settings.py binom_sync.py sso_bridge.py deploy tests
+          python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: JavaScript and browser checks
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          for file in public/*.js tests/*.js tests/*.cjs; do node --check "$file"; done
+          npm test
+      - name: Validate deploy package
+        run: python deploy/package_release.py
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    concurrency:
+      group: domonetka-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Package release
+        run: python3 deploy/package_release.py
+      - name: Deploy tested commit
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY" && test -n "$DEPLOY_KNOWN_HOSTS" && test -n "$DEPLOY_HOST"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/deploy"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy" "$HOME/.ssh/known_hosts"
+          trap 'rm -f "$HOME/.ssh/deploy"' EXIT
+          ssh -i "$HOME/.ssh/deploy" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 \
+            "root@$DEPLOY_HOST" "deploy $GITHUB_SHA" < release.tar.gz
+      - name: Verify public deployment
+        run: python3 deploy/verify_release.py "$GITHUB_SHA"
