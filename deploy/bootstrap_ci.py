@@ -18,6 +18,14 @@ def main():
     if not public_key.startswith('ssh-ed25519 '):
         raise ValueError('Expected generated deployment public key')
     try:
+        # Check the target before installing keys or deployment files.
+        _, stdout, stderr = client.exec_command(
+            'test -d /opt/domonetka/public && '
+            'test -x /opt/domonetka/.venv-sso-0.1.2/bin/python && '
+            'systemctl is-active --quiet domonetka', timeout=30)
+        error = stderr.read().decode()
+        if stdout.channel.recv_exit_status() != 0:
+            raise RuntimeError('Target is not the running Domonetka server. ' + error)
         with client.open_sftp() as sftp:
             # Root-owned forced command cannot be replaced by application releases.
             staged = '/root/domonetka-ci-receiver.new'
