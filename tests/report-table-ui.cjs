@@ -59,9 +59,10 @@ const {chromium} = require('playwright');
   });
   await page.evaluate(()=>{
    const data=DomonetkaReport.adaptBinom({rows:[{offer_id:'o',stream_id:'s',campaign_id:908,scope:'campaign',day:'all',metrics:{leads:1}},{offer_id:'o',stream_id:'s',campaign_id:908,scope:'variant',variant_id:'v',day:'all',metrics:{leads:0,unique_clicks:null},approved:null,statuses:[{one:'new',two:'',leads:0}],precision_warnings:['Нет точных уникальных']}],columns:[{key:'leads',name:'Лиды',decimals:0},{key:'custom_metric',name:'Custom',decimals:3}],bindings:[{offer_id:'o',campaign_id:908,status:'error',last_success:'2026-10-08T09:00:00Z',last_attempt:'2026-10-08T10:00:00Z',error:'Сбой'}],sync:[],period:{from:'',to:''}},{offers:[{id:'o',name:'Баннер'}],variants:[{id:'v',offer_id:'o',clicks:1,impressions:10}],period:{from:'2026-10-01',to:'2026-10-02'}});
-   if(data.rows.length!==2||data.rows[1].leads!==0||data.rows[1].approved!==null)throw Error('Scopes or null semantics broken');
-   if(data.rows[1].local_clicks!==undefined)throw Error('Mismatched local period joined');
-   if(!data.columns.some(c=>c.id==='custom_metric')||!data.sync.error.includes('Нет точных уникальных'))throw Error('Dynamic columns or warnings missing');
+   const variant=data.rows.find(r=>r.scope==='variant'),campaign=data.rows.find(r=>r.scope==='campaign'),attributed=data.rows.find(r=>r.scope==='attributed');
+   if(data.rows.length!==3||variant?.leads!==0||variant.approved!==null||campaign?.leads!==1||attributed?.leads!==undefined)throw Error('Scopes or null semantics broken');
+   if(variant.local_clicks!==undefined||attributed.local_clicks!==undefined)throw Error('Mismatched local period joined');
+   if(!data.columns.some(c=>c.id==='custom_metric')||!variant.precision_warnings.includes('Нет точных уникальных')||!data.sync.error.includes('Сбой'))throw Error('Dynamic columns or warnings missing');
   });
   await page.screenshot({path:path.resolve(__dirname,'../preview-report-desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});

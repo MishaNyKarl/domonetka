@@ -91,8 +91,9 @@ def deploy(stage, entries, sha):
     runtime = APP / '.venv-sso-0.1.2/bin/python'
     if not runtime.exists():
         raise RuntimeError('Production SSO 0.1.2 runtime missing; review before deployment')
-    run(str(runtime), '-m', 'py_compile', *(str(stage / name) for name in sorted(RUNTIME)))
-    run(str(runtime), '-c', 'from opsvault_sso.client import OIDCClient; from cryptography.fernet import Fernet')
+    run('/usr/bin/python3', '-m', 'py_compile', *(str(stage / name) for name in sorted(RUNTIME)))
+    run('runuser', '-u', 'domonetka', '--', str(runtime), '-c',
+        'from opsvault_sso.client import OIDCClient; from cryptography.fernet import Fernet')
     run('systemctl', 'stop', 'domonetka')
     database = APP / 'data/domonetka.sqlite'
     has_database_backup = False
